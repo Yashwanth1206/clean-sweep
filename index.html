@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CleanCity - Waste Management Platform</title>
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/auth.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+</head>
+<body>
+  <!-- App Container -->
+  <div id="app">
+    <!-- Authentication Section -->
+    <section id="auth-section" class="active-section">
+      <div class="container">
+        <div class="auth-container">
+          <div class="auth-logo">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18"></path>
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+              <path d="M12 11v6"></path>
+              <path d="M9 11v6"></path>
+              <path d="M15 11v6"></path>
+            </svg>
+            <h1>CleanCity</h1>
+          </div>
+          <h2>Sign In</h2>
+          <p class="auth-description">Sign in to report or clean up waste in your community.</p>
+          
+          <div id="login-error" class="error-message hidden"></div>
+          
+          <form id="login-form" class="auth-form">
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" id="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Sign In</button>
+          </form>
+          
+          <div class="auth-footer">
+            <p>Demo accounts:</p>
+            <ul>
+              <li><strong>Citizen:</strong> citizen@example.com</li>
+              <li><strong>Worker:</strong> worker@example.com</li>
+              <li><strong>Admin:</strong> admin@example.com</li>
+              <li><em>Password for all: "password"</em></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Dashboard Section -->
+    <section id="dashboard-section" class="hidden">
+      <!-- Will be populated by JavaScript -->
+    </section>
+    
+    <!-- Request Detail Section -->
+    <section id="request-detail-section" class="hidden">
+      <!-- Will be populated by JavaScript -->
+    </section>
+  </div>
+  
+  <!-- Templates -->
+  <template id="citizen-dashboard-template">
+    <div class="dashboard-header">
+      <div class="container">
+        <div class="dashboard-nav">
+          <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18"></path>
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+              <path d="M12 11v6"></path>
+              <path d="M9 11v6"></path>
+              <path d="M15 11v6"></path>
+            </svg>
+            <h1>CleanCity</h1>
+          </div>
+          <div class="user-menu">
+            <div class="user-info">
+              <span class="user-name"></span>
+              <img src="" alt="User Avatar" class="user-avatar">
+            </div>
+            <button id="logout-btn" class="btn btn-outline">Sign Out</button>
+          </div>
+        </div>
+        <div class="dashboard-title">
+          <h2>My Cleanup Requests</h2>
+          <button id="new-request-btn" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            New Request
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="container">
+      <div class="dashboard-stats">
+        <div class="stat-card">
+          <h3>Total Requests</h3>
+          <p id="total-requests">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>In Progress</h3>
+          <p id="in-progress-requests">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Completed</h3>
+          <p id="completed-requests">0</p>
+        </div>
+      </div>
+      
+      <div class="requests-container">
+        <div class="requests-filter">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="reported">Reported</button>
+          <button class="filter-btn" data-filter="assigned">Assigned</button>
+          <button class="filter-btn" data-filter="in-progress">In Progress</button>
+          <button class="filter-btn" data-filter="completed">Completed</button>
+          <button class="filter-btn" data-filter="verified">Verified</button>
+        </div>
+        
+        <div id="requests-list" class="requests-list">
+          <!-- Will be populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+  </template>
+  
+  <template id="worker-dashboard-template">
+    <div class="dashboard-header">
+      <div class="container">
+        <div class="dashboard-nav">
+          <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18"></path>
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+              <path d="M12 11v6"></path>
+              <path d="M9 11v6"></path>
+              <path d="M15 11v6"></path>
+            </svg>
+            <h1>CleanCity</h1>
+          </div>
+          <div class="user-menu">
+            <div class="user-info">
+              <span class="user-name"></span>
+              <img src="" alt="User Avatar" class="user-avatar">
+            </div>
+            <button id="logout-btn" class="btn btn-outline">Sign Out</button>
+          </div>
+        </div>
+        <div class="dashboard-title">
+          <h2>Cleanup Tasks</h2>
+        </div>
+      </div>
+    </div>
+    
+    <div class="container">
+      <div class="dashboard-stats">
+        <div class="stat-card">
+          <h3>Available Tasks</h3>
+          <p id="available-tasks">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>My Tasks</h3>
+          <p id="my-tasks">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Completed</h3>
+          <p id="completed-tasks">0</p>
+        </div>
+      </div>
+      
+      <div class="tasks-container">
+        <div class="requests-filter">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="reported">Available</button>
+          <button class="filter-btn" data-filter="assigned">Assigned to Me</button>
+          <button class="filter-btn" data-filter="in-progress">In Progress</button>
+          <button class="filter-btn" data-filter="completed">Completed</button>
+        </div>
+        
+        <div id="tasks-list" class="requests-list">
+          <!-- Will be populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+  </template>
+  
+  <template id="new-request-template">
+    <div class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>New Cleanup Request</h2>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="new-request-form">
+            <div class="form-group">
+              <label for="request-title">Title</label>
+              <input type="text" id="request-title" placeholder="Brief description of the issue" required>
+            </div>
+            <div class="form-group">
+              <label for="request-description">Detailed Description</label>
+              <textarea id="request-description" placeholder="Provide details about the waste issue" required></textarea>
+            </div>
+            <div class="form-group">
+              <label for="request-location">Location</label>
+              <input type="text" id="request-location" placeholder="Street address or landmark" required>
+            </div>
+            <div class="form-group">
+              <label>Pin Location on Map</label>
+              <div id="new-request-map" style="height: 320px; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb;"></div>
+              <input type="hidden" id="request-lat">
+              <input type="hidden" id="request-lng">
+              <p class="image-caption" style="margin-top: 8px;">Click on the map to set the location.</p>
+            </div>
+            <div class="form-group">
+              <label for="request-image">Image of Area</label>
+              <div class="file-upload">
+                <input type="file" id="request-image" accept="image/*" required>
+                <label for="request-image" class="file-upload-label">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 7.5v9.5c0 1.1-.9 2-2 2H6c-1.1 0-2-.9-2-2V7.5"></path>
+                    <path d="M18 7.5V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v2.5"></path>
+                    <path d="M2 12.5h20"></path>
+                    <path d="M7 12.5v-5h10v5"></path>
+                  </svg>
+                  Choose File
+                </label>
+              </div>
+              <div id="image-preview-container" class="image-preview-container hidden">
+                <img id="image-preview" src="" alt="Image Preview">
+                <button type="button" id="remove-image" class="btn btn-danger btn-sm">Remove</button>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-outline cancel-request">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit Request</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </template>
+  
+  <template id="request-card-template">
+    <div class="request-card" data-id="">
+      <div class="request-header">
+        <h3 class="request-title"></h3>
+        <span class="request-status"></span>
+      </div>
+      <div class="request-location">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+        <span class="location-text"></span>
+      </div>
+      <div class="request-images">
+        <div class="request-image before-image">
+          <img src="" alt="Area Before Cleanup">
+        </div>
+        <div class="request-image after-image hidden">
+          <img src="" alt="Area After Cleanup">
+        </div>
+      </div>
+      <div class="request-footer">
+        <span class="request-date"></span>
+        <button class="btn btn-sm btn-primary view-details">View Details</button>
+      </div>
+    </div>
+  </template>
+  
+  <template id="request-detail-template">
+    <div class="detail-header">
+      <div class="container">
+        <div class="back-button">
+          <button id="back-to-dashboard" class="btn btn-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Back to Dashboard
+          </button>
+        </div>
+        <h2 id="detail-title">Request Details</h2>
+        <div class="detail-status">
+          <span id="detail-status" class="request-status"></span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="container">
+      <div class="detail-content">
+        <div class="detail-info">
+          <h3>Request Information</h3>
+          <div class="info-group">
+            <label>Location:</label>
+            <p id="detail-location"></p>
+          </div>
+          <div class="info-group">
+            <label>Reported On:</label>
+            <p id="detail-date"></p>
+          </div>
+          <div class="info-group">
+            <label>Description:</label>
+            <p id="detail-description"></p>
+          </div>
+          <div id="detail-completion-date" class="info-group hidden">
+            <label>Completed On:</label>
+            <p id="completion-date"></p>
+          </div>
+        </div>
+        
+        <div class="detail-images">
+          <h3>Before & After</h3>
+          <div class="comparison-container">
+            <div class="comparison-image">
+              <h4>Before</h4>
+              <div class="image-container">
+                <img id="detail-before-image" src="" alt="Before Cleanup">
+              </div>
+              <p class="image-caption">Reported condition</p>
+            </div>
+            
+            <div id="after-image-section" class="comparison-image">
+              <h4>After</h4>
+              <div id="detail-after-container" class="image-container">
+                <!-- Either shows image or upload option based on role/status -->
+              </div>
+              <p id="after-image-caption" class="image-caption">Cleaned condition</p>
+            </div>
+          </div>
+        </div>
+        
+        <div id="action-panel" class="detail-actions">
+          <!-- Will be populated based on status and role -->
+        </div>
+      </div>
+    </div>
+  </template>
+  
+  <!-- Scripts -->
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin="">
+  </script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/requests.js"></script>
+  <script src="js/upload.js"></script>
+</body>
+</html>
